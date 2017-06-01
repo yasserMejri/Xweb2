@@ -1,0 +1,127 @@
+{% extends 'main.html' %}
+
+{% load bootstrap3 %}
+{% load bootstrap_themes %}
+
+{% block page_title %} Profile <em>"{{ user.username }}" </em> {% endblock %}
+
+{% block main %}
+
+	{% if msg != '' %}
+		<div class="alert alert-{{msg_type}}">
+			<a href="#" class="close" data-dismiss="alert">&times;</a>
+			<strong>{{ msg_type }}</strong> {{ msg }}
+		</div>
+	{% endif %}
+
+    <div class="col-sm-12">
+        <!-- tabs left -->
+        <div class="tabbable">
+            <ul class="nav nav-pills nav-stacked col-md-2">
+            	<h3>Profile</h3>
+                <li class="active"><a href="#information" data-toggle="tab">Information</a></li>
+                <li><a href="#plan" data-toggle="tab">Plan</a></li>
+                <li><a href="#resetpassword" data-toggle="tab"> Reset Password </a> </li>
+            </ul>
+            <div class="tab-content col-md-8">
+            	<br />
+                <div class="tab-pane active" id="information">
+                    <form method="post" id="update_form">
+                    	{% csrf_token %}
+                    	{% bootstrap_form form %}
+						<button type="submit" class="btn btn-default col-sm-offset-10">
+							{% bootstrap_icon 'user' %} Update
+						</button>
+                    </form>
+                </div>
+                <div class="tab-pane" id="plan">
+                	<h3> Upgrade your User plan here </h3> <br />
+                	{% for plan in plans %}
+                		<div class="col-sm-4">
+                			<div class="card">
+                    			<h1> {{ plan.title }} </h1>
+                    			<label> Dababases: </label>
+                    			<span> {% if plan.db_count|add:"0" != 0 %} {{ plan.db_count }} {% else %} Unlimited {% endif%} </span> <br />
+                    			<label> Field count: </label>
+                    			<span> {% if plan.field_count|add:"0" != -1 %} {{ plan.field_count }} {% else %} Unlimited {% endif%} </span> <br />
+                    			<label> Url count: </label>
+                    			<span> {% if plan.url_count|add:"0" != -1 %} {{ plan.url_count }} {% else %} Unlimited {% endif%} </span> <br />
+                    			<label> Monthly fee: </label>
+                    			<span> ${{ plan.fee }} </span> <br />
+                    			<button class="select_plan btn btn-default" itemid="{{ plan.id }}" {% if current_plan.id == plan.id %} disabled="true" {% endif %} > 
+                    			{% if current_plan.id == plan.id %}
+                    				Selected
+                    			{% else %}
+                    				Select 
+                    			{% endif %}
+                    			</button>
+                    		</div>
+                		</div>
+                	{% endfor %}
+                </div>
+                <div class="tab-pane" id="resetpassword">
+                    <form method="post" id="update_form">
+                    	{% csrf_token %}
+                    	<input type="hidden" name="resetpassword" value="resetpassword" />
+                    	{% bootstrap_form password_form %}
+                    	<span class="text text-danger"> {{ error }} </span>
+						<button type="submit" class="btn btn-default col-sm-offset-10">
+							{% bootstrap_icon 'user' %} Update
+						</button>
+					</form>
+                </div>
+            </div>
+        </div>
+        <!-- /tabs -->
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+
+	<script language = "JavaScript">
+		$(document).ready(function() {
+			var csrf = $("{% csrf_token %}").val(); 
+			$('#password2').popover({
+				html: true,
+				content: function() {
+					return $('<div><span class="glyphicon glyphicon-warning-alert"></span> Password doesn\'t match</div>').html()
+				}
+			});
+			$("#update_form").submit(function() {
+				if($("#password").val() != $("#password2").val()) {
+					$("#password2").focus()
+					$("#password2").popover('show');
+					setTimeout(function() {
+						$("#password2").popover('hide');
+					}, 3000);
+					return false;
+				}
+			}); 
+
+			$(".select_plan").click(function() {
+				var id = $(this).attr("itemid");
+				var elem = $(this);
+				if(id != "1") {
+					alert("Thank you for your use! Those features are coming Soon!"); 
+					return; 
+				}
+
+				$.post(
+					"{% url 'planselect' %}", 
+					{
+						'csrfmiddlewaretoken': csrf, 
+						'id': id, 
+					}, function(r) {
+						data = JSON.parse(r);
+						if(data['status'] == 'success') {
+							elem.prop('disabled', true);
+							elem.html('Selected'); 
+						}
+					} ); 
+			}); 
+
+		}); 
+	</script>
+	
+{% endblock %}
