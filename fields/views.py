@@ -15,6 +15,7 @@ from wsgiref.util import FileWrapper
 from django.utils.encoding import smart_str
 from django.core.mail import send_mail, EmailMessage, EmailMultiAlternatives
 from django.template.loader import render_to_string
+from django.utils.safestring import SafeString
 
 from fields import models
 
@@ -25,6 +26,7 @@ import mimetypes
 import random
 import string
 import string
+import types
 
 # Create your views here.
 
@@ -70,7 +72,6 @@ def send_confirm_email(user):
 	print msg.body
 
 	msg.send()
-
 
 def x_register(request):
 
@@ -215,7 +216,6 @@ def x_planselect(request):
 			'request': request.POST
 			}))
 
-
 def refresh_db(d_id):
 	database = models.UrlGroup.objects.get(pk=d_id)
 	d_fields = models.XField.objects.filter(site_group = database)
@@ -265,6 +265,11 @@ def database(request):
 
 	if request.method == 'POST':
 
+		if request.POST.get('action') == 'run':
+			database = models.UrlGroup.objects.get(pk=int(request.POST.get('id')))
+			print reverse('database-run', kwargs={'d_id':database.id} )
+			return HttpResponse(str(reverse('database-run', kwargs={'d_id':database.id} )))
+
 		if request.POST.get('action') == 'delete-db':
 			try:
 				database = models.UrlGroup.objects.get(pk=int(request.POST.get('id')))
@@ -312,9 +317,48 @@ def database(request):
 		})
 
 @login_required
+def database_run(request, d_id):
+
+	profile, current_plan, error = pre_process(request)
+	database = models.UrlGroup.objects.get(pk=d_id)
+
+	if request.method == 'POST':
+		interval = request.POST.get('data')
+		database.interval = interval
+		database.save()
+		return HttpResponse(json.dumps({
+			'status': 'success'
+			}))
+
+	try:
+		interval = json.loads(database.interval)
+	except:
+		interval = database.interval
+
+	weekdays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
+	repeat = ['once', 'everyday', 'custom']
+	mode = ['append', 'overwrite']
+
+	api_url = settings.SITE_URL + reverse('database-api')
+
+	if error:
+		return error
+
+	return render(request, 'database-run.html', {
+		'name': database.name,
+		'database': database, 
+		'user': request.user, 
+		'weekdays': weekdays, 
+		'api_url': api_url, 
+		'interval': SafeString(json.dumps(interval)), 
+		'repeat': repeat, 
+		'mode': mode
+		})
+
+@login_required
 def dbfields(request, id):
 
-	profile, current_pla, error = pre_process(request)
+	profile, current_plan, error = pre_process(request)
 
 	if error:
 		return error
@@ -698,7 +742,7 @@ def api(request):
 			fields, urls, database = refresh_db(int(request.POST.get('database')))
 			dm = request.POST.get('home_url').split('/')[2]
 			ud = models.Url.objects.filter(url__contains = dm, group = database)
-			data = [{"id":item.id, "url": item.url, "data": item.data, "data_results": item.data_results, "complete": item.complete} for item in ud]
+			data = [{"id":item.id, "url": item.url, "data": item.data, "data_results": item.data_results, "data_sq": item.data_sq, "complete": item.complete} for item in ud]
 
 			if len(data) == 0:
 				return HttpResponse(json.dumps({
@@ -710,6 +754,8 @@ def api(request):
 				data[0]['data'] = "{}";
 			if len(data[0]['data_results']) == 0:
 				data[0]['data_results'] = "{}"
+			if len(data[0]['data_sq']) == 0:
+				data[0]['data_sq'] = "{}"
 
 			nxt_complete_url = ''
 			nxt_url = ''
@@ -750,15 +796,51 @@ def api(request):
 			data = json.loads(target.data) if len(target.data) != 0 else {}
 			data_urls = json.loads(target.data_urls) if len(target.data_urls) != 0 else {}
 			data_results = json.loads(target.data_results) if len(target.data_results) != 0 else {}
+			data_sq = json.loads(target.data_sq) if len(target.data_sq) != 0 else []
 
 			field = request.POST.get('field')
-			data[field] = request.POST.get('content')
-			data_urls[field] = request.POST.get('home_url')
-			data_results[field] = request.POST.get('result')
+			if fields[int(field)]['name'] == 'next_url':
+
+				try:
+					if not isinstance(data[field], types.ListType):
+						data[field] = []
+				except:
+					data[field] = []
+				try:
+					if not isinstance(data_urls[field], types.ListType):
+						data_urls[field]
+				except:
+					data_urls[field] = []
+				try:
+					if not isinstance(data_results[field], types.ListType):
+						data_results[field] = []
+				except: 
+					data_results[field] = []
+
+				data[field].append(request.POST.get('content'))
+				data_urls[field].append(request.POST.get('home_url'))
+				data_results[field].append(request.POST.get('result'))
+
+				n = 0
+				for item in data_sq:
+					if item.find(field) != -1:
+						n = n + 1
+				field = field + ' - ' + str(n)
+			else:
+				data[field] = request.POST.get('content')
+				data_urls[field] = request.POST.get('home_url')
+				data_results[field] = request.POST.get('result')
+
+			try:
+				data_sq.remove(field)
+			except:
+				pass
+			data_sq.append(field)
 
 			target.data = json.dumps(data)
 			target.data_urls = json.dumps(data_urls)
 			target.data_results = json.dumps(data_results)
+			target.data_sq = json.dumps(data_sq)
 
 			target.save()
 			return HttpResponse(json.dumps({
@@ -772,6 +854,7 @@ def api(request):
 				'msg_type': '0', 
 				'request': request.POST
 				}))
+
 	if request.POST.get('type') == 'completeinverse':
 		try:
 			target = models.Url.objects.get(pk=int(request.POST.get('id')))
@@ -781,6 +864,21 @@ def api(request):
 				'status': 'success',
 				'complete': target.complete, 
 				'request': request.POST
+				}))
+		except:
+			return HttpResponse(json.dumps({
+				'status': 'error',
+				'msg': 'Something went wrong!', 
+				'msg_type': '0', 
+				'request': request.POST
+				}))
+	if request.POST.get('type') == 'saveorder':
+		try:
+			target = models.Url.objects.get(pk=int(request.POST.get('id')))
+			target.data_sq = request.POST.get('sq_data')
+			target.save()
+			return HttpResponse(json.dumps({
+				'status': 'success', 
 				}))
 		except:
 			return HttpResponse(json.dumps({

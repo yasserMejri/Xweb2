@@ -1,0 +1,84 @@
+{% extends 'main.html' %}
+{% load static %}
+{% load extra %}
+
+
+{% block page_title %} Databases Run <em>"{{ name }}"</em> {% endblock %}
+
+{% block main %}
+
+	<div class="col-sm-12">
+		<div class="col-sm-7">
+			<h3> Running Schedule </h3>
+			<div class="col-sm-12 schedule-options">
+				{% for item in repeat %}
+					<label class="btn btn-sm btn-default custom-radio {% if item == interval.repeat %} active {% endif %}">
+						<input type="radio" name="regular" value="{{item}}" />
+						{{ item|title }}
+					</label>
+				{% endfor %}
+				<div class="pull-right">
+					<span class="date-input"> Date &nbsp; </span>
+					<span class="time-input"> Time &nbsp; </span>
+					<input type="date" name="date-input" id="date-input" class="date-input" value="{{ interval.data.date }}" />
+					<input type="time" name="time-input" id="time-input" class="time-input" value="{{ interval.data.time }}" />
+				</div>
+			</div>
+			<div class="clearfix"> </div>
+			<br/>
+
+			<div class="col-sm-12">
+				{% for weekday in weekdays %}
+					<div class="week-wrap" itemprop="{{ weekday }}">
+						<div class="weekday btn btn-default {% if weekday in interval.data %} btn-primary {% endif %} "> 
+							{{ weekday|title }} 
+						</div> 
+						<input type="time" id="{{weekday}}-item" /> <br/>
+						{# <span class="glyphicon glyphicon-plus"> </span> #}
+					</div>
+				{% endfor %}
+			</div>
+		</div>
+		<div class="col-sm-5">
+			<h3> Actions </h3>
+			<div class="col-sm-12 result-process-options"> 
+				<button class="btn btn-default" id="run-now" > Run Now </button>
+				<div class="pull-right ">
+					{% for item in mode %}
+						<label class="btn btn-sm btn-default custom-radio">
+							<input type="radio" name="result-process" value="{{ item }}" />
+							{{ item|title }}
+						</label>
+					{% endfor %}
+				</div>
+			</div>
+			<div class="clearfix"> </div>
+			<br/>
+			<div class="input-group">
+				<span class="input-group-addon">GET: </span>
+				<input type="text" class="form-control" value="{{ api_url}}" >
+				<span class="input-group-btn" >
+					<button class="btn btn-default" type="button"> 
+						<span class="glyphicon glyphicon-copy"> </span>
+					</button>
+				</span>
+			</div>			
+		</div>
+	</div>
+	<button class="btn btn-default col-sm-offset-11" id="save-run-configuration" > Save </button>
+	<div class="clearfix"> </div>
+	<hr />
+	<div class="col-sm-12">
+		<button class="btn btn-default"> Show Data </button>
+	</div>
+
+{% endblock %}
+
+{% block scripts %}
+	<script language = 'javascript'> 
+		var interval = JSON.parse('{{ interval }}'); 
+		var url = "{% url 'database-run' database.id %}"; 
+		var csrf = $("{% csrf_token %}").val();
+	</script>
+	<script src="{% static '/js/database/run.js' %}" > </script>
+{% endblock %}

@@ -14,8 +14,9 @@
 		{% for db in all_dbs %}
 			<a href = "{% url 'database-detail' db.id %}" itemvalue="{{db.id}}" >
 				<div class="db-item col-sm-3">
+					<span class="run-db glyphicon glyphicon-play" tiele="Run data collecting" > </span>
 					{{ db.name }}
-					<span class="remove-db glyphicon glyphicon-remove-circle"  data-toggle="confirmation" data-placement="left" > </span>
+					<span class="remove-db glyphicon glyphicon-remove-circle"  data-toggle="confirmation" data-placement="left" title="Delete Database" > </span>
 				</div>
 			</a>
 		{% endfor %}
@@ -79,6 +80,19 @@
 							alert("Something went wrong"); 
 						}
 					} ); 
+				return false;
+			}); 
+			$("div.db-item span.run-db").click(function() {
+				var item = $(this).parent().parent();
+				$.post(
+					"{% url 'database' %}", 
+					{
+						action: 'run', 
+						id: item.attr("itemvalue"), 
+						csrfmiddlewaretoken: csrf
+					}, function(r) {
+						window.location = r;
+					}); 
 				return false;
 			}); 
 		}); 

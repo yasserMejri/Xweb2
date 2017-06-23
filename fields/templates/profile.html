@@ -20,7 +20,14 @@
             <ul class="nav nav-pills nav-stacked col-md-2">
             	<h3>Profile</h3>
                 <li class="active"><a href="#information" data-toggle="tab">Information</a></li>
-                <li><a href="#plan" data-toggle="tab">Plan</a></li>
+                <li>
+                	<a href="#plan" data-toggle="tab">
+                		Plan
+                		{% if not current_plan %}
+                			<span class="glyphicon glyphicon-exclamation-sign pull-right"> </span>
+                		{% endif %}
+                	</a>
+                </li>
                 <li><a href="#resetpassword" data-toggle="tab"> Reset Password </a> </li>
             </ul>
             <div class="tab-content col-md-8">

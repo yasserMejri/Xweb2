@@ -7,6 +7,10 @@ a {
 	color: #000;
 }
  
+ input[type="date"], input[type="time"], input[type="datetime-local"], input[type="month"] {
+ 	line-height: inherit;
+ }
+
 a:hover {
 	color: #777;
 	text-decoration: none;
@@ -127,6 +131,14 @@ div.db-item.add-item span:hover {
 	color: #777;
 }
 
+div.db-item span.run-db {
+	position: absolute;
+	left:0;
+	top:0;
+	padding: 4%;
+	color: #eee;
+}
+
 div.db-item span.remove-db {
 	position: absolute;
     right: 0;
@@ -135,7 +147,8 @@ div.db-item span.remove-db {
     color: #eee;
 }
 
-div.db-item span.remove-db:hover {
+div.db-item span.remove-db:hover, 
+div.db-item span.run-db:hover {
 	color: #222;
 }
 
@@ -239,4 +252,53 @@ div.items-wrapper span.update-item {
 	width: 38%;
 	text-align: left;
 	display: inline-block;
+}
+
+.week-wrap {
+	display: inline-block;
+	margin: 3px 7px;
+	text-align: center;
+}
+
+.weekday {
+	display: block;
+	width: 56px;
+	height: 56px;
+	padding: 15px 3px;
+	border-radius: 50%;
+	margin: 5px auto 10px;
+}
+
+.week-wrap input {
+	opacity: 0.2;
+}
+
+.week-wrap span {
+	opacity: 0;
+	cursor: pointer;
+}
+
+.week-wrap.active input {
+	opacity: 1;
+}
+
+.week-wrap.active span:hover {
+	opacity: 0.8;
+}
+
+.custom-radio input[type='radio'] {
+	display: none;
+}
+
+.custom-radio {
+	background-color: #fff;
+	color: #000;
+	margin-left: 0;
+	margin-right: 0;
+	float: left;
+}
+
+.custom-radio.active {
+	background-color: #222;
+	color: #fff;
 }

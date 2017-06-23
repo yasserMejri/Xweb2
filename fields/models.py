@@ -4,6 +4,8 @@ from __future__ import unicode_literals
 from django.db import models
 from django.contrib.auth.models import User
 
+import jsonfield
+
 # Create your models here.
 
 class UserPlan(models.Model):
@@ -46,6 +48,7 @@ class XField(models.Model):
 class UrlGroup(models.Model):
 	name = models.CharField(max_length=255)
 	user = models.ForeignKey(User)
+	interval = jsonfield.JSONField()
 
 	def __str__(self):
 		return self.name
@@ -56,6 +59,7 @@ class Url(models.Model):
 	data = models.TextField(blank=True)
 	data_urls = models.TextField(blank=True)
 	data_results = models.TextField(blank=True)
+	data_sq = models.TextField(blank=True)
 	complete = models.BooleanField(default=False)
 
 	def __str__(self):
