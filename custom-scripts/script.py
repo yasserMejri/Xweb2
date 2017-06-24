@@ -32,15 +32,15 @@ import csv
 # REAL CODE
 
 
-fields = {"356": "dealer_name", "355": "car_postcode", "383": "next_image", "384": "next_page", "385": "car_price", "420": "next_url", "362": "make_model", "361": "car_make"}
+fields = ##FIELD_VALUE##
 
-data = {"356": "//h3/strong/text()", "362": "//div[contains(@class, 'col-xs-4')][4]/text()", "384": "//ul[contains(@class, 'pagination')]/li[last()]/a", "385": "//h2[contains(@class, 'col-xs-12 col-sm-3 price text-right')]/text()", "420": ["//a[contains(@class, 'btn btn-success pull-right')]"]}
+data = ##DATA_VALUE##
 
-data_sq = ["385", "362", "420 - 0", "356", "384", "355", "361", "383", "420 - 1"]
+data_sq = ##DATA_SQ_VALUE##
 
-data_urls = {"356": "http://www.rockvale.co.uk/detail/202615/used-bmw-z4-2-0i-sport-2dr-stockport", "362": "http://www.rockvale.co.uk/used-cars", "384": "http://www.rockvale.co.uk/used-cars", "385": "http://www.rockvale.co.uk/used-cars", "420": ["http://www.rockvale.co.uk/used-cars"]}
+data_urls = ##DATA_URLS_VALUE##
 
-target_dir = '/home/ubunto/Documents/Work/robert/Xweb/custom-scripts/1/Cars/www.rockvale.co.uk'
+target_dir = '##TARGET_DIR_VALUE##'
 
 display = Display(visible=0, size=(800, 600))
 display.start()

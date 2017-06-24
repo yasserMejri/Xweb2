@@ -329,7 +329,7 @@ def create_execute_env(request, d_id):
 	fields = models.XField.objects.filter(site_group = database)
 
 	original_script = ""
-	with open('fields/template_scrapy/script.py') as f:
+	with open(settings.SCRIPT_DIR + 'script.py') as f:
 		original_script = f.read()
 
 	print original_script

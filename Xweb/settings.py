@@ -128,7 +128,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
 
-SCRIPT_DIR = 'custom-scripts/'
+SCRIPT_DIR = BASE_DIR + '/custom-scripts/'
 
 LANGUAGE_CODE = 'en-us'
 
