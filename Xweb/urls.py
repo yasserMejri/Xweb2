@@ -28,8 +28,10 @@ urlpatterns = [
     url(r'^planselect/$', views.x_planselect, name="planselect"), 
 	url(r'^database/$', views.database, name="database"), 
     url(r'^database/run/(?P<d_id>[0-9]+)/$', views.database_run, name="database-run"),
+    url(r'^database/execute/(?P<d_id>[0-9]+)/$', views.database_execute, name="database-execute"),
 	url(r'^database/(?P<id>[0-9]+)/$', views.dbfields, name="database-detail"),
     url(r'^database/manage/$', views.dbfieldmanage, name="database-manage"), 
+    url(r'^data-api/(?P<d_id>[0-9]+)/$', views.data_api, name="data-api"), 
     url(r'^api/$', views.api, name="database-api"), 
 
     url(r'^admin/', admin.site.urls, name = "admin"),

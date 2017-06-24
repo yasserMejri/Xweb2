@@ -316,6 +316,87 @@ def database(request):
 		'msg_type': msg_type
 		})
 
+def create_execute_env(request, d_id):
+
+	database = models.UrlGroup.objects.get(pk=d_id)
+
+	os.system('mkdir ' + settings.SCRIPT_DIR)
+	os.system('mkdir ' + settings.SCRIPT_DIR + str(request.user.id))
+	os.system('mkdir ' + settings.SCRIPT_DIR + str(request.user.id) + '/' + database.name)
+
+
+	urls = models.Url.objects.filter(group = database, complete = True)
+	fields = models.XField.objects.filter(site_group = database)
+
+	original_script = ""
+	with open('fields/template_scrapy/script.py') as f:
+		original_script = f.read()
+
+	print original_script
+
+	p_fields = {}
+	for field in fields:
+		p_fields[str(field.id)] = field.name
+
+	print p_fields
+
+	p_data = p_data_sq = None
+
+
+	for url in urls:
+
+		p_data = json.loads(url.data)
+		p_data_sq = json.loads(url.data_sq)
+		p_data_urls = json.loads(url.data_urls)
+
+		os.system('mkdir '+ settings.SCRIPT_DIR + str(request.user.id) + '/' + database.name + '/' + url.url)
+
+		target_dir = settings.SCRIPT_DIR + str(request.user.id) + '/' + database.name + '/' + url.url
+
+		original_script = original_script.replace('##FIELD_VALUE##', json.dumps(p_fields))
+		original_script = original_script.replace("##DATA_VALUE##", json.dumps(p_data))
+		original_script = original_script.replace("##DATA_SQ_VALUE##", json.dumps(p_data_sq))
+		original_script = original_script.replace("##DATA_URLS_VALUE##", json.dumps(p_data_urls))
+		original_script = original_script.replace("##TARGET_DIR_VALUE##", target_dir)
+
+		with open(target_dir + '/script.py', 'w') as f:
+			f.write(original_script)
+
+		os.system('cd ' + target_dir)
+		os.system('python ' + target_dir +'/script.py')
+
+
+@login_required
+def database_execute(request, d_id):
+
+	if request.method == 'GET':
+		return HttpResponse('Execute Database')
+
+	profile, current_plan, error = pre_process(request)
+	database = models.UrlGroup.objects.get(pk=d_id)
+
+	if request.POST.get('show-data'):
+		return data_api(request, d_id)
+
+	create_execute_env(request, d_id)
+
+	# if request.POST.get('now'):
+
+	return HttpResponse(json.dumps({
+		'status': 'success'
+		}))
+
+def data_api(request, d_id):
+	database = models.UrlGroup.objects.get(pk=d_id)
+	urls = models.Url.objects.filter(group = database, complete = True)
+	data = {}
+	target_dir = settings.SCRIPT_DIR + str(request.user.id) + '/' + database.name + '/'
+	for url in urls:
+		with open(target_dir + url.url + '/result.json') as f:
+			data[url.url] = json.load(f)
+	return HttpResponse(json.dumps(data))
+
+
 @login_required
 def database_run(request, d_id):
 
@@ -339,7 +420,7 @@ def database_run(request, d_id):
 	repeat = ['once', 'everyday', 'custom']
 	mode = ['append', 'overwrite']
 
-	api_url = settings.SITE_URL + reverse('database-api')
+	api_url = settings.SITE_URL + reverse('data-api', kwargs={'d_id': database.id})
 
 	if error:
 		return error

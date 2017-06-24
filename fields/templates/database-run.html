@@ -43,6 +43,7 @@
 			<h3> Actions </h3>
 			<div class="col-sm-12 result-process-options"> 
 				<button class="btn btn-default" id="run-now" > Run Now </button>
+				<span id = "running" style="display: none;" > <img src="{% static '/img/running.gif' %}" width="30" /> </span>
 				<div class="pull-right ">
 					{% for item in mode %}
 						<label class="btn btn-sm btn-default custom-radio">
@@ -69,7 +70,9 @@
 	<div class="clearfix"> </div>
 	<hr />
 	<div class="col-sm-12">
-		<button class="btn btn-default"> Show Data </button>
+		<button id="show-data" class="btn btn-default"> Show Data </button>
+	</div>
+	<div id="data-area" class="col-sm-12">
 	</div>
 
 {% endblock %}
@@ -78,6 +81,7 @@
 	<script language = 'javascript'> 
 		var interval = JSON.parse('{{ interval }}'); 
 		var url = "{% url 'database-run' database.id %}"; 
+		var execute_url = "{% url 'database-execute' database.id %}"
 		var csrf = $("{% csrf_token %}").val();
 	</script>
 	<script src="{% static '/js/database/run.js' %}" > </script>
