@@ -358,6 +358,7 @@ def create_execute_env(request, d_id):
 		original_script = original_script.replace("##DATA_SQ_VALUE##", json.dumps(p_data_sq))
 		original_script = original_script.replace("##DATA_URLS_VALUE##", json.dumps(p_data_urls))
 		original_script = original_script.replace("##TARGET_DIR_VALUE##", target_dir)
+		original_script = original_script.replace('##SCRIPT_DIR##', settings.SCRIPT_DIR)
 
 		with open(target_dir + '/script.py', 'w') as f:
 			f.write(original_script)

@@ -54,7 +54,7 @@ def validate(elem):
 s_url = data_urls[data_sq[0]]
 
 # driver = webdriver.PhantomJS() # or add to your PATH
-driver = webdriver.Chrome("./chromedriver")
+driver = webdriver.Chrome("##SCRIPT_DIR##/chromedriver")
 # driver.set_window_size(1024, 768) # optional
 driver.set_window_position(0,0)
 driver.get(s_url)
