@@ -83,6 +83,57 @@ $(document).ready(function() {
 			$(".week-wrap[itemprop='"+item+"'] > input").val(interval['data'][item])
 			console.log(item);
 		}
-	}	
+	}
+
+	$("#run-now").click(function() {
+		var btn = $(this);
+		var show_data = $("#show-data"); 
+		var icon = $("#running");
+		icon.show();
+		btn.attr('disabled', true); 
+		show_data.attr('disabled', true); 
+		$.post(
+			execute_url, 
+			{ 
+				'now': true,
+				'csrfmiddlewaretoken': csrf, 
+			}, 
+			function(r) {
+				r = JSON.parse(r);
+				console.log(r);
+				icon.hide();
+				btn.attr('disabled', false); 
+				show_data.attr('disabled', false); 
+			} )
+	}); 
+
+	$("#show-data").click(function() {
+		$.post(
+			execute_url, 
+			{
+				'show-data': true,
+				'csrfmiddlewaretoken': csrf
+			}, function(r) {
+				r = JSON.parse(r);
+				var container = $("#data-area"); 
+				var content = ""
+				for(var url in r) {
+					content += "<h4>"+url+"</h4> <table class='table' > <thead> <tr>";
+					for(var key in r[url][0]) {
+						content += "<th>"+key+"</th>";
+					}
+					content += "</tr></thead><tbody>";
+					for(var i = 0; i < r[url].length; i ++) {
+						content += "<tr>";
+						for(var key in r[url][i]) {
+							content += "<td>"+r[url][i][key]+"</td>";
+						}
+						content += "</tr>";
+					}
+					content += "</tbody></table>"
+				}
+				container.html(content);
+			} )
+	}); 
 
 }); 
