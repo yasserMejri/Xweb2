@@ -332,7 +332,7 @@ def create_execute_env(request, d_id):
 	with open(settings.SCRIPT_DIR + 'script.py') as f:
 		original_script = f.read()
 
-	print original_script
+	script_content = original_script
 
 	p_fields = {}
 	for field in fields:
@@ -344,6 +344,8 @@ def create_execute_env(request, d_id):
 
 
 	for url in urls:
+
+		original_script = script_content
 
 		p_data = json.loads(url.data)
 		p_data_sq = json.loads(url.data_sq)
@@ -359,6 +361,8 @@ def create_execute_env(request, d_id):
 		original_script = original_script.replace("##DATA_URLS_VALUE##", json.dumps(p_data_urls))
 		original_script = original_script.replace("##TARGET_DIR_VALUE##", target_dir)
 		original_script = original_script.replace('##SCRIPT_DIR##', settings.SCRIPT_DIR)
+
+		print original_script
 
 		with open(target_dir + '/script.py', 'w') as f:
 			f.write(original_script)
@@ -387,6 +391,7 @@ def database_execute(request, d_id):
 		'status': 'success'
 		}))
 
+@csrf_exempt
 def data_api(request, d_id):
 	database = models.UrlGroup.objects.get(pk=d_id)
 	urls = models.Url.objects.filter(group = database, complete = True)
@@ -408,6 +413,7 @@ def database_run(request, d_id):
 		interval = request.POST.get('data')
 		database.interval = interval
 		database.save()
+
 		return HttpResponse(json.dumps({
 			'status': 'success'
 			}))

@@ -3,8 +3,12 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.conf import settings
+
+from crontab import CronTab
 
 import jsonfield
+import json
 
 # Create your models here.
 
@@ -52,6 +56,46 @@ class UrlGroup(models.Model):
 
 	def __str__(self):
 		return self.name
+
+	def save(self, *args, **kwargs):
+		super(UrlGroup, self).save(*args, **kwargs)	
+		cron = CronTab(user = True)
+		jobs = []
+		urls = Url.objects.filter(group = self, complete = True)
+
+		interval = json.loads(self.interval)
+		cmt = 'Xpath database ' + str(self.id)
+
+		for job in cron:
+			if job.comment == cmt:
+				cron.remove(job)
+		cron.write()
+
+		cron_string = ''
+		if 'once' == interval['repeat']:
+			cron_string = interval['data']['time'].split(':')[1] + ' ' + interval['data']['time'].split(':')[0] + ' '
+			cron_string += interval['data']['date'].split('-')[0] + ' ' + interval['data']['date'].split('-')[1] + ' *'
+		if 'everyday' == interval['repeat']:
+			cron_string = interval['data']['time'].split(':')[1] + ' ' + interval['data']['time'].split(':')[0] + ' '
+			cron_string += '* * *'
+		if 'custom' == interval['repeat']:
+			cron_string = []
+			for dow in interval['data']:
+				item = interval['data'][dow].split(':')[1] + ' ' + interval['data'][dow].split(':')[0] + ' * * '
+				item += dow.upper()
+				cron_string.append(item)
+
+		for url in urls:
+			target_dir = settings.SCRIPT_DIR + str(self.user.id) + '/' + self.name + '/' + url.url  + '/script.py'
+			if isinstance(cron_string, basestring):
+				job = cron.new(command='python ' + target_dir, comment=cmt)
+				job.setall(cron_string)
+				cron.write()
+			else:
+				for item in cron_string:
+					job = cron.new(command='python ' + target_dir, comment=cmt)
+					job.setall(item)
+					cron.write()
 
 class Url(models.Model):
 	url = models.CharField(max_length=255)

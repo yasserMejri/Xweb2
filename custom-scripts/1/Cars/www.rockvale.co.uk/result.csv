@@ -1,4 +1,4 @@
-dealer_name,car_price,make_model
+next_url,car_price,make_model
 0161 476 5915,"£17,495
 ",Coupe
 0161 476 5915,"£16,995
@@ -19,21 +19,3 @@ dealer_name,car_price,make_model
 ",Hatchback
 0161 476 5915,"£8,995
 ",Sports
-0161 476 5915,"£8,995
-",Convertible
-0161 476 5915,"£8,995
-",Convertible
-0161 476 5915,"£8,795
-",Convertible
-0161 476 5915,"£8,695
-",Sports
-0161 476 5915,"£8,495
-",Sports
-0161 476 5915,"£7,795
-",Hatchback
-0161 476 5915,"£7,495
-",Convertible
-0161 476 5915,"£6,995
-",Sports
-0161 476 5915,"POA
-",Hatchback

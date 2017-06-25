@@ -54,7 +54,7 @@ def validate(elem):
 s_url = data_urls[data_sq[0]]
 
 # driver = webdriver.PhantomJS() # or add to your PATH
-driver = webdriver.Chrome("./chromedriver")
+driver = webdriver.Chrome("/home/ubunto/Documents/Work/robert/Xweb/custom-scripts//chromedriver")
 # driver.set_window_size(1024, 768) # optional
 driver.set_window_position(0,0)
 driver.get(s_url)
@@ -81,22 +81,35 @@ while True:
 			all_data[fields[idx]] = []
 		if fields[idx] == 'next_page':
 			try:
+				body = html.fromstring(driver.page_source)
+				old_href = body.xpath(data[idx]+'//@href')
 				driver.find_element_by_xpath(data[idx]).click()
+				if driver.url.find(old_href) != -1:
+					raise ValueError('Redirected to same url')
 				nxt_page = True
 			except:
 				print "Next Page click Failed"
 				nxt_page = False
 			break
+		print '------------------ ' + idx + '   ' + fields[idx]
 		if fields[idx] == 'next_url':
 			print 'next_url processing ' + idx + ' ' + str(sub_idx)
-			body = html.fromstring(driver.page_source)
+			try:
+				elems = driver.find_elements_by_xpath(data[idx][sub_idx])
+			except:
+				elems = []
 
-			elems = driver.find_elements_by_xpath(data[idx][sub_idx])
+			cnt = len(elems)
 
 			old_sq_c = sq_c
 			pp = 0
-			for elem in elems:
+			# for elem in elems:
+			while pp < cnt:
+				print 'next_url processing ' + idx + ' ' + str(sub_idx) + ' before 107'
+				elems = driver.find_elements_by_xpath(data[idx][sub_idx])
+				elem = elems[pp]
 				pp = pp + 1
+
 				print fields[idx] + ' started processing'
 				print elem
 				print driver.current_url
@@ -118,32 +131,35 @@ while True:
 				sq_c = old_sq_c
 				while sq_c < len(data_sq):
 					sq_c = sq_c + 1
-					idx = data_sq[sq_c]
-					xp = data[idx]
-					print fields[idx] + ' started sub processing'
+					t_idx = data_sq[sq_c]
+					xp = data[t_idx]
+					print fields[t_idx] + ' started sub processing'
 					try:
-						all_data[fields[idx]]
+						all_data[fields[t_idx]]
 					except:
-						all_data[fields[idx]] = []
-					if fields[idx] == 'next_page':
+						all_data[fields[t_idx]] = []
+					if fields[t_idx] == 'next_page':
 						sq_c = sq_c	- 1
-						print 'next_paged breaking'
+						print 'next_paged breaking inside next_url'
 						break
 
 					else:
 						body = html.fromstring(driver.page_source)
 						all_data[fields[idx]] += body.xpath(xp)
 
-					print fields[idx] + ' done'
+					print fields[t_idx] + ' done'
 
-				print fields[idx] + ' done'
+				print fields[t_idx] + ' done'
 
 				driver.close()
 				driver.switch_to_window(handles[0])
 
 				print driver.current_url
 		else: 
-			all_data[fields[idx]] += body.xpath(data[idx])
+			try:
+				all_data[fields[idx]] += body.xpath(data[idx])
+			except:
+				all_data[fields[idx]] = ''
 
 		print fields[idx] + ' Done'
 		sq_c = sq_c + 1
@@ -154,9 +170,12 @@ while True:
 	nxt_page = False
 	print 'Going to next page'
 
+
+
 print all_data
 
 t_data = []
+header = []
 
 for key in all_data:
 	for idx in range(len(all_data[key])):
@@ -167,14 +186,17 @@ for key in all_data:
 			t_data.append({})
 		t_data[idx][key] = all_data[key][idx]
 
+		if idx == 0:
+			header.append(key)
+
 with open(target_dir + '/result.json', 'w') as f:
 	f.write(json.dumps(t_data))
 with open(target_dir + '/result.csv', 'w') as f:
 	w = csv.writer(f)
-	header = all_data.keys()
+	# header = all_data.keys()
 
-	header.remove('next_url')
-	header.remove('next_page')
+	# header.remove('next_url')
+	# header.remove('next_page')
 	w.writerow(header)
 	for row in t_data:
 		w.writerow([unicode(item).encode("utf-8") for key, item in row.items()])
@@ -182,3 +204,7 @@ with open(target_dir + '/result.csv', 'w') as f:
 driver.close()
 
 display.stop()
+
+# display.popen.terminate()
+display.popen.kill()
+
