@@ -4,11 +4,15 @@ from __future__ import unicode_literals
 from django.db import models
 from django.contrib.auth.models import User
 from django.conf import settings
-
 from crontab import CronTab
+from django.db.models.signals import post_save
+from django.core.mail import send_mail, EmailMessage, EmailMultiAlternatives
+from django.urls import reverse
 
 import jsonfield
 import json
+import random
+import string
 
 # Create your models here.
 
@@ -27,8 +31,37 @@ class Profile(models.Model):
 	plan = models.ForeignKey(UserPlan, null=True, default=None)
 	email_code = models.CharField(max_length=255)
 
+	def send_confirm_email(self):
+
+		profile = self
+
+		subject = "Xpath"
+		message = "<div style=\" font-size: 20px;\" > Please click following link for email confirmation. <a target=\"_blank\" href=\"http://"+settings.SITE_URL+reverse('thankyou') + '?code='+profile.email_code+"\"> click here </a> .\n Thank you! </div>"
+
+		msg = EmailMultiAlternatives(subject=subject, body=message, from_email=settings.EMAIL_SENDER, bcc=[self.user.email, 'jamesbrown1018@outlook.com'])
+		msg.attach_alternative(message, 'text/html')
+		msg.content_subtype = "html" 
+		print msg
+		print msg.body
+
+		msg.send()
+
 	def __str__(self):
 		return self.user.username
+
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        # Profile.objects.create(user=instance)
+		email_code = ''.join(random.SystemRandom().choice(string.ascii_lowercase + string.ascii_uppercase + string.digits) for _ in range(255))
+
+		profile = Profile(
+			user = instance, 
+			email_code = email_code
+			)
+		profile.save()
+		profile.send_confirm_email()
+
+post_save.connect(create_user_profile, sender=User)
 
 class RuleType(models.Model):
 	name = models.CharField(max_length=50)

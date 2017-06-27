@@ -13,7 +13,6 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from wsgiref.util import FileWrapper
 from django.utils.encoding import smart_str
-from django.core.mail import send_mail, EmailMessage, EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.safestring import SafeString
 
@@ -25,8 +24,6 @@ import json
 import csv
 import os
 import mimetypes
-import random
-import string
 import string
 import types
 import zipfile
@@ -68,21 +65,6 @@ def x_logout(request):
 	logout(request)
 	return HttpResponseRedirect(reverse('login'))
 
-def send_confirm_email(user):
-
-	profile = models.Profile.objects.get(user=user)
-
-	subject = "Xpath"
-	message = "<div style=\" font-size: 20px;\" > Please click following link for email confirmation. <a target=\"_blank\" href=\"http://"+settings.SITE_URL+reverse('thankyou') + '?code='+profile.email_code+"\"> click here </a> .\n Thank you! </div>"
-
-	msg = EmailMultiAlternatives(subject=subject, body=message, from_email=settings.EMAIL_SENDER, bcc=[user.email, 'jamesbrown1018@outlook.com'])
-	msg.attach_alternative(message, 'text/html')
-	msg.content_subtype = "html" 
-	print msg
-	print msg.body
-
-	msg.send()
-
 def x_register(request):
 
 	print request.method
@@ -96,19 +78,10 @@ def x_register(request):
 		user.set_password(password)
 		user.save()
 
-		email_code = ''.join(random.SystemRandom().choice(string.ascii_lowercase + string.ascii_uppercase + string.digits) for _ in range(255))
-
-		profile = models.Profile(
-			user = user, 
-			email_code = email_code
-			)
-
-		profile.save()
-
 		login(request, user)
 
 		# SEND EMAIL WITH GENERATED email_code
-		send_confirm_email(user)
+		# Migrated to model side. plus integrated with User save signal
 		# ---- SEND EMAIL ----
 
 		return HttpResponseRedirect(reverse('thankyou'))
@@ -128,7 +101,7 @@ def x_thankyou(request):
 	message = reverse('thankyou') + '?code='+profile.email_code
 
 	if request.GET.get('sendagain'):
-		send_confirm_email(request.user)
+		profile.send_confirm_email()
 
 	if code == profile.email_code:
 		action = 'success'
