@@ -132,6 +132,7 @@ $(document).ready(function() {
 					}
 					content += "</tbody></table>"
 				}
+				content += "<a href='"+download_result_url+"' class='btn btn-default pull-right'> DOwnload Result </a>"
 				container.html(content);
 			} )
 	}); 

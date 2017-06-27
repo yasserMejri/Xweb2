@@ -81,7 +81,8 @@
 	<script language = 'javascript'> 
 		var interval = JSON.parse('{{ interval }}'); 
 		var url = "{% url 'database-run' database.id %}"; 
-		var execute_url = "{% url 'database-execute' database.id %}"
+		var execute_url = "{% url 'database-execute' database.id %}"; 
+		var download_result_url = "{% url 'database-download-result' database.id %}"; 
 		var csrf = $("{% csrf_token %}").val();
 	</script>
 	<script src="{% static '/js/database/run.js' %}" > </script>

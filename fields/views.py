@@ -19,6 +19,8 @@ from django.utils.safestring import SafeString
 
 from fields import models
 
+from os.path import basename
+
 import json
 import csv
 import os
@@ -27,8 +29,16 @@ import random
 import string
 import string
 import types
+import zipfile
 
 # Create your views here.
+
+def zipdir(path, ziph):
+    # ziph is zipfile handle
+    for root, dirs, files in os.walk(path):
+    	print files
+        for file in files:
+            ziph.write(os.path.join(root, file), basename(os.path.join(root, file)))
 
 def index(request):
 	return render(request, 'index.html')
@@ -401,6 +411,43 @@ def data_api(request, d_id):
 		with open(target_dir + url.url + '/result.json') as f:
 			data[url.url] = json.load(f)
 	return HttpResponse(json.dumps(data))
+
+
+@login_required
+def download_result_csv(request, d_id):
+
+	# if request.method == 'GET':
+	# 	return HttpResponse('Post only')
+
+	zip_dir = settings.TEMP_ZIP_DIR
+
+	profile, current_plan, error = pre_process(request)
+	database = models.UrlGroup.objects.get(pk=d_id)
+	urls = models.Url.objects.filter(group = database, complete = True)
+
+	target_dir = settings.TEMP_ZIP_DIR
+	os.system('rm -rf ' + target_dir)
+	os.system('mkdir ' + target_dir)
+	for url in urls:
+		source = settings.SCRIPT_DIR + str(request.user.id) + '/' + database.name + '/' + url.url
+		os.system('cp ' + source + '/result.csv ' + target_dir)
+		os.system('mv ' + target_dir + 'result.csv ' + target_dir + url.url + '-result.csv')
+
+	zip_path= settings.PROJECT_ROOT + '/out.zip'
+	zipf = zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED)
+	zipdir(target_dir, zipf)
+	zipf.close()
+
+	path = smart_str(zip_path)
+
+	wrapper = FileWrapper( open( path, "r" ) )
+	content_type = mimetypes.guess_type( path )[0]
+
+	response = HttpResponse(wrapper, content_type = content_type)
+	response['Content-Length'] = os.path.getsize( path ) # not FileField instance
+	response['Content-Disposition'] = 'attachment; filename=%s' % smart_str( os.path.basename( path ) ) # same here
+
+	return response	
 
 
 @login_required

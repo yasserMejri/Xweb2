@@ -29,6 +29,7 @@ urlpatterns = [
 	url(r'^database/$', views.database, name="database"), 
     url(r'^database/run/(?P<d_id>[0-9]+)/$', views.database_run, name="database-run"),
     url(r'^database/execute/(?P<d_id>[0-9]+)/$', views.database_execute, name="database-execute"),
+    url(r'^database/download/(?P<d_id>[0-9]+)/$', views.download_result_csv, name="database-download-result"),
 	url(r'^database/(?P<id>[0-9]+)/$', views.dbfields, name="database-detail"),
     url(r'^database/manage/$', views.dbfieldmanage, name="database-manage"), 
     url(r'^data-api/(?P<d_id>[0-9]+)/$', views.data_api, name="data-api"), 

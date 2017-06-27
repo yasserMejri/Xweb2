@@ -130,6 +130,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 SCRIPT_DIR = BASE_DIR + '/custom-scripts/'
 
+TEMP_ZIP_DIR = BASE_DIR + '/result-csv/'
+
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
