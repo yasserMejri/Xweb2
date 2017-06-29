@@ -305,7 +305,7 @@ def create_execute_env(request, d_id):
 
 	os.system('mkdir ' + settings.SCRIPT_DIR)
 	os.system('mkdir ' + settings.SCRIPT_DIR + str(request.user.id))
-	os.system('mkdir ' + settings.SCRIPT_DIR + str(request.user.id) + '/' + database.name)
+	os.system('mkdir ' + settings.SCRIPT_DIR + str(request.user.id) + '/' + database.name.replace(' ','_'))
 
 
 	urls = models.Url.objects.filter(group = database, complete = True)
@@ -334,9 +334,9 @@ def create_execute_env(request, d_id):
 		p_data_sq = json.loads(url.data_sq)
 		p_data_urls = json.loads(url.data_urls)
 
-		os.system('mkdir '+ settings.SCRIPT_DIR + str(request.user.id) + '/' + database.name + '/' + url.url)
+		os.system('mkdir '+ settings.SCRIPT_DIR + str(request.user.id) + '/' + database.name.replace(' ','_') + '/' + url.url.replace('/','_'))
 
-		target_dir = settings.SCRIPT_DIR + str(request.user.id) + '/' + database.name + '/' + url.url
+		target_dir = settings.SCRIPT_DIR + str(request.user.id) + '/' + database.name.replace(' ','_') + '/' + url.url.replace('/','_')
 
 		original_script = original_script.replace('##FIELD_VALUE##', json.dumps(p_fields))
 		original_script = original_script.replace("##DATA_VALUE##", json.dumps(p_data))
@@ -379,9 +379,9 @@ def data_api(request, d_id):
 	database = models.UrlGroup.objects.get(pk=d_id)
 	urls = models.Url.objects.filter(group = database, complete = True)
 	data = {}
-	target_dir = settings.SCRIPT_DIR + str(request.user.id) + '/' + database.name + '/'
+	target_dir = settings.SCRIPT_DIR + str(request.user.id) + '/' + database.name.replace(' ','_') + '/'
 	for url in urls:
-		with open(target_dir + url.url + '/result.json') as f:
+		with open(target_dir + url.url.replace('/','_') + '/result.json') as f:
 			data[url.url] = json.load(f)
 	return HttpResponse(json.dumps(data))
 
@@ -402,9 +402,9 @@ def download_result_csv(request, d_id):
 	os.system('rm -rf ' + target_dir)
 	os.system('mkdir ' + target_dir)
 	for url in urls:
-		source = settings.SCRIPT_DIR + str(request.user.id) + '/' + database.name + '/' + url.url
+		source = settings.SCRIPT_DIR + str(request.user.id) + '/' + database.name.replace(' ','_') + '/' + url.url.replace('/','_')
 		os.system('cp ' + source + '/result.csv ' + target_dir)
-		os.system('mv ' + target_dir + 'result.csv ' + target_dir + url.url + '-result.csv')
+		os.system('mv ' + target_dir + 'result.csv ' + target_dir + url.url.replace('/','_') + '-result.csv')
 
 	zip_path= settings.PROJECT_ROOT + '/out.zip'
 	zipf = zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED)
