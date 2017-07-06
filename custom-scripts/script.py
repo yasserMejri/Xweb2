@@ -70,99 +70,102 @@ while True:
 	sq_c = 0
 	sub_idx = 0
 	list_handle = driver.current_window_handle
-	while sq_c < len(data_sq):
-		idx = data_sq[sq_c]
-		if idx.find('-') != -1:
-			sub_idx = int(idx.split('-')[-1].strip())
-			idx = idx.split('-')[0].strip()
-		try:
-			all_data[fields[idx]]
-		except:
-			all_data[fields[idx]] = []
-		if fields[idx] == 'next_page':
+	try:
+		while sq_c < len(data_sq):
+			idx = data_sq[sq_c]
+			if idx.find('-') != -1:
+				sub_idx = int(idx.split('-')[-1].strip())
+				idx = idx.split('-')[0].strip()
 			try:
-				body = html.fromstring(driver.page_source)
-				old_href = body.xpath(data[idx]+'//@href')
-				driver.find_element_by_xpath(data[idx]).click()
-				if driver.url.find(old_href) != -1:
-					raise ValueError('Redirected to same url')
-				nxt_page = True
+				all_data[fields[idx]]
 			except:
-				print "Next Page click Failed"
-				nxt_page = False
-			break
-		print '------------------ ' + idx + '   ' + fields[idx]
-		if fields[idx] == 'next_url':
-			print 'next_url processing ' + idx + ' ' + str(sub_idx)
-			try:
-				elems = driver.find_elements_by_xpath(data[idx][sub_idx])
-			except:
-				elems = []
+				all_data[fields[idx]] = []
+			if fields[idx] == 'next_page':
+				try:
+					body = html.fromstring(driver.page_source)
+					old_href = body.xpath(data[idx]+'//@href')
+					driver.find_element_by_xpath(data[idx]).click()
+					if driver.url.find(old_href) != -1:
+						raise ValueError('Redirected to same url')
+					nxt_page = True
+				except:
+					print "Next Page click Failed"
+					nxt_page = False
+				break
+			print '------------------ ' + idx + '   ' + fields[idx]
+			if fields[idx] == 'next_url':
+				print 'next_url processing ' + idx + ' ' + str(sub_idx)
+				try:
+					elems = driver.find_elements_by_xpath(data[idx][sub_idx])
+				except:
+					elems = []
 
-			cnt = len(elems)
+				cnt = len(elems)
 
-			old_sq_c = sq_c
-			pp = 0
-			# for elem in elems:
-			while pp < cnt:
-				print 'next_url processing ' + idx + ' ' + str(sub_idx) + ' before 107'
-				elems = driver.find_elements_by_xpath(data[idx][sub_idx])
-				elem = elems[pp]
-				pp = pp + 1
+				old_sq_c = sq_c
+				pp = 0
+				# for elem in elems:
+				while pp < cnt:
+					print 'next_url processing ' + idx + ' ' + str(sub_idx) + ' before 107'
+					elems = driver.find_elements_by_xpath(data[idx][sub_idx])
+					elem = elems[pp]
+					pp = pp + 1
 
-				print fields[idx] + ' started processing'
-				print elem
-				print driver.current_url
+					print fields[idx] + ' started processing'
+					print elem
+					print driver.current_url
 
-				print driver.window_handles
+					print driver.window_handles
 
-				webdriver.ActionChains(driver) \
-					.key_down(Keys.CONTROL) \
-					.click(elem) \
-					.key_up(Keys.CONTROL) \
-					.perform()
+					webdriver.ActionChains(driver) \
+						.key_down(Keys.CONTROL) \
+						.click(elem) \
+						.key_up(Keys.CONTROL) \
+						.perform()
 
-				handles = driver.window_handles
+					handles = driver.window_handles
 
-				print handles
+					print handles
 
-				driver.switch_to_window(handles[1])
+					driver.switch_to_window(handles[1])
 
-				sq_c = old_sq_c
-				while sq_c < len(data_sq):
-					sq_c = sq_c + 1
-					t_idx = data_sq[sq_c]
-					xp = data[t_idx]
-					print fields[t_idx] + ' started sub processing'
-					try:
-						all_data[fields[t_idx]]
-					except:
-						all_data[fields[t_idx]] = []
-					if fields[t_idx] == 'next_page':
-						sq_c = sq_c	- 1
-						print 'next_paged breaking inside next_url'
-						break
+					sq_c = old_sq_c
+					while sq_c < len(data_sq):
+						sq_c = sq_c + 1
+						t_idx = data_sq[sq_c]
+						xp = data[t_idx]
+						print fields[t_idx] + ' started sub processing'
+						try:
+							all_data[fields[t_idx]]
+						except:
+							all_data[fields[t_idx]] = []
+						if fields[t_idx] == 'next_page':
+							sq_c = sq_c	- 1
+							print 'next_paged breaking inside next_url'
+							break
 
-					else:
-						body = html.fromstring(driver.page_source)
-						all_data[fields[idx]] += body.xpath(xp)
+						else:
+							body = html.fromstring(driver.page_source)
+							all_data[fields[idx]] += body.xpath(xp)
+
+						print fields[t_idx] + ' done'
 
 					print fields[t_idx] + ' done'
 
-				print fields[t_idx] + ' done'
+					driver.close()
+					driver.switch_to_window(handles[0])
 
-				driver.close()
-				driver.switch_to_window(handles[0])
+					print driver.current_url
+			else: 
+				try:
+					all_data[fields[idx]] += body.xpath(data[idx])
+				except:
+					all_data[fields[idx]] = ''
 
-				print driver.current_url
-		else: 
-			try:
-				all_data[fields[idx]] += body.xpath(data[idx])
-			except:
-				all_data[fields[idx]] = ''
-
-		print fields[idx] + ' Done'
-		sq_c = sq_c + 1
+			print fields[idx] + ' Done'
+			sq_c = sq_c + 1
+	except:
+		break
 
 	if nxt_page == False:
 		print 'Done'

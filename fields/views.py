@@ -280,6 +280,8 @@ def database(request):
 			else:
 				db_name = request.POST.get('dbname')
 				try:
+					if len(models.UrlGroup.objects.filter(name=db_name, user=request.user)) != 0:
+						raise ValueError('Same name exists!')
 					db = models.UrlGroup(
 						name = db_name, 
 						user = request.user
